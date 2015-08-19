@@ -1,45 +1,37 @@
 #!/usr/bin/env python
 
 import sqlite3
-
 import os
-import time
 import glob
+import commands
 
 # global variables
 speriod=(15*60)-1
-dbname='/var/www/templog.db'
+dbname='/var/www/tmplog/tempdb2.db'
 
 
 
 # store the temperature in the database
-def log_temperature(temp):
-
+def log_temperature(iD, temp):
     conn=sqlite3.connect(dbname)
     curs=conn.cursor()
-
-    curs.execute("INSERT INTO temps values(datetime('now'), (?))", (temp,))
-
+    insertDataQuery = "INSERT INTO sensor_data (sensor_id,value) VALUES('"+str(iD)+"','"+str(temp)+"');"
+    curs.execute(insertDataQuery);
     # commit the changes
     conn.commit()
-
     conn.close()
 
-
 # display the contents of the database
-def display_data():
-
+def display_data(iD):
     conn=sqlite3.connect(dbname)
     curs=conn.cursor()
-
-    for row in curs.execute("SELECT * FROM temps"):
+    getSensorDataQuery = "SELECT * FROM sensor_data WHERE sensor_id =?"
+    for row in curs.execute(getSensorDataQuery, iD):
         print str(row[0])+"	"+str(row[1])
 
     conn.close()
 
-
-
-# get temerature
+# get temperature
 # returns None on error, or the temperature as a float
 def get_temp(devicefile):
 
@@ -75,38 +67,25 @@ def main():
     os.system('sudo modprobe w1-therm')
 
     # search for a device file that starts with 28
-    devicelist = glob.glob('/sys/bus/w1/devices/28*')
+    deviceDir = '/sys/bus/w1/devices/'
+    devicelist = glob.glob(deviceDir + '28*')
+
     if devicelist=='':
+        # no devices
         return None
     else:
         # append /w1slave to the device file
-        w1devicefile = devicelist[0] + '/w1_slave'
+        for w1devicefile in devicelist:
+            w1devicefile = w1devicefile + '/w1_slave'
+            # get the temperature from the device file
+            temperature = get_temp(w1devicefile)
+            while temperature == None:
+                temperature = get_temp(w1devicefile)
 
-
-#    while True:
-
-    # get the temperature from the device file
-    temperature = get_temp(w1devicefile)
-    if temperature != None:
-        print "temperature="+str(temperature)
-    else:
-        # Sometimes reads fail on the first attempt
-        # so we need to retry
-        temperature = get_temp(w1devicefile)
-        print "temperature="+str(temperature)
-
-        # Store the temperature in the database
-    log_temperature(temperature)
-
-        # display the contents of the database
-#        display_data()
-
-#        time.sleep(speriod)
-
+            deviceid = w1devicefile.split("/")[5]
+            print "Device ID ("+deviceid+") ; Temperature ("+str(temperature)+")"
+            # Store the temperature in the database
+            log_temperature(deviceid, temperature)
 
 if __name__=="__main__":
     main()
-
-
-
-
