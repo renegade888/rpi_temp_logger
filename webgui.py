@@ -153,9 +153,6 @@ def show_stats(option):
 
     conn.close()
 
-
-
-
 def print_time_selector(option):
 
     print """<form action="/cgi-bin/webgui.py" method="POST">
