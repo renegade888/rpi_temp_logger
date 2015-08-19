@@ -8,15 +8,13 @@ import cgitb
 
 # global variables
 speriod=(15*60)-1
-dbname='/var/www/templog.db'
+dbname='/var/www/tmplog/tempdb2.db'
 
 
 
 # print the HTTP header
 def printHTTPheader():
     print "Content-type: text/html\n\n"
-
-
 
 # print the HTML head section
 # arguments are the page title and the table for the chart
@@ -25,7 +23,7 @@ def printHTMLHead(title, table):
     print "    <title>"
     print title
     print "    </title>"
-    
+
     print_graph_script(table)
 
     print "</head>"
@@ -40,10 +38,9 @@ def get_data(interval):
     curs=conn.cursor()
 
     if interval == None:
-        curs.execute("SELECT * FROM temps")
+        curs.execute("SELECT * FROM sensor_data")
     else:
-#        curs.execute("SELECT * FROM temps WHERE timestamp>datetime('now','-%s hours')" % interval)
-        curs.execute("SELECT * FROM temps WHERE timestamp>datetime('2013-09-19 21:30:02','-%s hours') AND timestamp<=datetime('2013-09-19 21:31:02')" % interval)
+         curs.execute("SELECT * FROM sensor_data WHERE timestamp>datetime('now','-%s hours')" % interval)
 
     rows=curs.fetchall()
 
