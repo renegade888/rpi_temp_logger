@@ -1,8 +1,10 @@
-CREATE TABLE sensor_data( id           integer primary key autoincrement not null
-                        , timestamp    datetime default current_timestamp not null
-                        , sensor_id    integer not null
-                        , value        real not null);
-/*
-CREATE TABLE sensors( sensor_id        integer primary key
-                    , sensor_name      text not null);
-*/
+CREATE TABLE sensor_data (
+        sensor_id TEXT NOT NULL,
+        timestamp datetime NOT NULL DEFAULT current_timestamp,
+        value real NOT NULL
+);
+CREATE TABLE sensor (
+        sensor_id TEXT NOT NULL UNIQUE,
+        sensor_name   TEXT NOT NULL DEFAULT 'SensorName',
+        PRIMARY KEY(sensor_id)
+);

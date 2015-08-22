@@ -48,15 +48,14 @@ def get_data(interval):
 # convert rows from database into a javascript table
 def create_table(rows):
     chart_table=""
-
     for row in rows[:-1]:
-        rowstr="['{0}', {1}],\n".format(str(row[0]),str(row[1]))
+        rowstr="['{0}', {1}],\n".format(str(row[1]),str(row[2]))
         chart_table+=rowstr
 
     row=rows[-1]
-    rowstr="['{0}', {1}]\n".format(str(row[0]),str(row[1]))
+    rowstr="['{0}', {1}]\n".format(str(row[1]),str(row[2]))
     chart_table+=rowstr
-
+    #print chart_table
     return chart_table
 
 
@@ -87,9 +86,6 @@ def print_graph_script(table):
 
     print chart_code % (table)
 
-
-
-
 # print the div that contains the graph
 def show_graph():
     print "<h2>Temperature Chart</h2>"
@@ -99,7 +95,6 @@ def show_graph():
 # connect to the db and show some stats
 # argument option is the number of hours
 def show_stats(interval):
-
     conn=sqlite3.connect(dbname)
     curs=conn.cursor()
 
@@ -136,6 +131,7 @@ def show_stats(interval):
     for row in rows:
         rowstr="<tr><td>{0}&emsp;&emsp;</td><td>{1}C</td></tr>".format(str(row[0]),str(row[1]))
         print rowstr
+        print "hest"
     print "</table>"
 
     print "<hr>"
@@ -144,7 +140,7 @@ def show_stats(interval):
 
 def print_time_selector(option):
 
-    print """<form action="/cgi-bin/webgui.py" method="POST">
+    print """<form action="" method="POST">
         Show the temperature logs for  
         <select name="timeinterval">"""
 
@@ -198,9 +194,6 @@ def getTimeInterval():
         return validate_input (option)
     else:
         return None
-
-
-
 
 # main function
 # This is where the program starts 

@@ -13,6 +13,8 @@ dbname='/var/www/tmplog/tempdb2.db'
 def log_temperature(iD, temp):
     conn=sqlite3.connect(dbname)
     curs=conn.cursor()
+    insertDeviceQuery = "INSERT OR IGNORE INTO sensor (sensor_id) VALUES('"+str(iD)+"');"
+    curs.execute(insertDeviceQuery);
     insertDataQuery = "INSERT INTO sensor_data (sensor_id,value) VALUES('"+str(iD)+"','"+str(temp)+"');"
     curs.execute(insertDataQuery);
     # commit the changes
@@ -23,10 +25,12 @@ def log_temperature(iD, temp):
 def display_data(iD):
     conn=sqlite3.connect(dbname)
     curs=conn.cursor()
+    getDevices = "SELECT * FROM sensor"
     getSensorDataQuery = "SELECT * FROM sensor_data WHERE sensor_id =?"
     for row in curs.execute(getSensorDataQuery, [iD]):
-        print str(row[1])+"	"+str(row[3])
-
+        print str(row[0])+"	"+str(row[1])+"	"+str(row[2])
+    for row in curs.execute(getDevices):
+        print str(row[0])+" "+str(row[1])
     conn.close()
 
 # get temperature
@@ -65,7 +69,7 @@ def main():
     # search for a device file that starts with 28
     deviceDir = '/sys/bus/w1/devices/'
     devicelist = glob.glob(deviceDir + '28*')
-
+    print devicelist
     if devicelist=='':
         # no devices
         return None
@@ -81,6 +85,6 @@ def main():
             deviceid = w1devicefile.split("/")[5]
             # Store the temperature in the database
             log_temperature(deviceid, temperature)
-
+            #display_data(deviceid)
 if __name__=="__main__":
     main()
