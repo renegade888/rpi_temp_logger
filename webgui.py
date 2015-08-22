@@ -33,7 +33,6 @@ def printHTMLHead(title, table):
 # if an interval is passed, 
 # return a list of records from the database
 def get_data(interval):
-
     conn=sqlite3.connect(dbname)
     curs=conn.cursor()
 
@@ -43,11 +42,8 @@ def get_data(interval):
          curs.execute("SELECT * FROM sensor_data WHERE timestamp>datetime('now','-%s hours')" % interval)
 
     rows=curs.fetchall()
-
     conn.close()
-
     return rows
-
 
 # convert rows from database into a javascript table
 def create_table(rows):
@@ -202,7 +198,7 @@ def validate_input(option_str):
 
 
 #return the option passed to the script
-def get_option():
+def getTimeInterval():
     form=cgi.FieldStorage()
     if "timeinterval" in form:
         option = form["timeinterval"].value
@@ -220,13 +216,13 @@ def main():
     cgitb.enable()
 
     # get options that may have been passed to this script
-    option=get_option()
+    interval=getTimeInterval()
 
-    if option is None:
-        option = str(24)
+    if not interval:
+        interval= str(24) #24 hour std interval
 
     # get data from the database
-    records=get_data(option)
+    records=get_data(interval)
 
     # print the HTTP header
     printHTTPheader()
@@ -246,11 +242,11 @@ def main():
 
     # print the page body
     print "<body>"
-    print "<h1>Raspberry Pi Temperature Logger</h1>"
+    print "<h1>Raspberry Temperature Logger</h1>"
     print "<hr>"
-    print_time_selector(option)
+    print_time_selector(interval)
     show_graph()
-    show_stats(option)
+    show_stats(interval)
     print "</body>"
     print "</html>"
 
@@ -258,7 +254,3 @@ def main():
 
 if __name__=="__main__":
     main()
-
-
-
-
