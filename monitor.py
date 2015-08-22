@@ -26,8 +26,8 @@ def display_data(iD):
     conn=sqlite3.connect(dbname)
     curs=conn.cursor()
     getSensorDataQuery = "SELECT * FROM sensor_data WHERE sensor_id =?"
-    for row in curs.execute(getSensorDataQuery, iD):
-        print str(row[0])+"	"+str(row[1])
+    for row in curs.execute(getSensorDataQuery, [iD]):
+        print str(row[1])+"	"+str(row[3])
 
     conn.close()
 
@@ -56,8 +56,6 @@ def get_temp(devicefile):
         print "There was an error."
         return None
 
-
-
 # main function
 # This is where the program starts 
 def main():
@@ -83,7 +81,6 @@ def main():
                 temperature = get_temp(w1devicefile)
 
             deviceid = w1devicefile.split("/")[5]
-            print "Device ID ("+deviceid+") ; Temperature ("+str(temperature)+")"
             # Store the temperature in the database
             log_temperature(deviceid, temperature)
 
