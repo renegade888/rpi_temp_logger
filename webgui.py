@@ -96,35 +96,29 @@ def show_graph():
     print '<div id="chart_div" style="width: 900px; height: 500px;"></div>'
 
 
-
 # connect to the db and show some stats
 # argument option is the number of hours
-def show_stats(option):
+def show_stats(interval):
 
     conn=sqlite3.connect(dbname)
     curs=conn.cursor()
 
-    if option is None:
-        option = str(24)
+    if not interval:
+        interval = str(24)
 
-#    curs.execute("SELECT timestamp,max(temp) FROM temps WHERE timestamp>datetime('now','-%s hour') AND timestamp<=datetime('now')" % option)
-    curs.execute("SELECT timestamp,max(temp) FROM temps WHERE timestamp>datetime('2013-09-19 21:30:02','-%s hour') AND timestamp<=datetime('2013-09-19 21:31:02')" % option)
+    curs.execute("SELECT timestamp,max(value) FROM sensor_data WHERE timestamp>datetime('now','-%s hour') AND timestamp<=datetime('now')" % interval)
     rowmax=curs.fetchone()
     rowstrmax="{0}&nbsp&nbsp&nbsp{1}C".format(str(rowmax[0]),str(rowmax[1]))
 
-#    curs.execute("SELECT timestamp,min(temp) FROM temps WHERE timestamp>datetime('now','-%s hour') AND timestamp<=datetime('now')" % option)
-    curs.execute("SELECT timestamp,min(temp) FROM temps WHERE timestamp>datetime('2013-09-19 21:30:02','-%s hour') AND timestamp<=datetime('2013-09-19 21:31:02')" % option)
+    curs.execute("SELECT timestamp,min(value) FROM sensor_data WHERE timestamp>datetime('2013-09-19 21:30:02','-%s hour') AND timestamp<=datetime('2013-09-19 21:31:02')" % interval)
     rowmin=curs.fetchone()
     rowstrmin="{0}&nbsp&nbsp&nbsp{1}C".format(str(rowmin[0]),str(rowmin[1]))
 
-#    curs.execute("SELECT avg(temp) FROM temps WHERE timestamp>datetime('now','-%s hour') AND timestamp<=datetime('now')" % option)
-    curs.execute("SELECT avg(temp) FROM temps WHERE timestamp>datetime('2013-09-19 21:30:02','-%s hour') AND timestamp<=datetime('2013-09-19 21:31:02')" % option)
+    curs.execute("SELECT avg(value) FROM sensor_data WHERE timestamp>datetime('now','-%s hour') AND timestamp<=datetime('now')" % interval)
     rowavg=curs.fetchone()
 
 
     print "<hr>"
-
-
     print "<h2>Minumum temperature&nbsp</h2>"
     print rowstrmin
     print "<h2>Maximum temperature</h2>"
@@ -138,8 +132,7 @@ def show_stats(option):
     print "<table>"
     print "<tr><td><strong>Date/Time</strong></td><td><strong>Temperature</strong></td></tr>"
 
-#    rows=curs.execute("SELECT * FROM temps WHERE timestamp>datetime('new','-1 hour') AND timestamp<=datetime('new')")
-    rows=curs.execute("SELECT * FROM temps WHERE timestamp>datetime('2013-09-19 21:30:02','-1 hour') AND timestamp<=datetime('2013-09-19 21:31:02')")
+    rows=curs.execute("SELECT * FROM sensor_data WHERE timestamp>datetime('new','-1 hour') AND timestamp<=datetime('new')")
     for row in rows:
         rowstr="<tr><td>{0}&emsp;&emsp;</td><td>{1}C</td></tr>".format(str(row[0]),str(row[1]))
         print rowstr
@@ -242,7 +235,7 @@ def main():
 
     # print the page body
     print "<body>"
-    print "<h1>Raspberry Temperature Logger</h1>"
+    print "<h1>Raspberry Pi Temperature Logger</h1>"
     print "<hr>"
     print_time_selector(interval)
     show_graph()
