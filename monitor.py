@@ -9,8 +9,6 @@ import commands
 speriod=(15*60)-1
 dbname='/var/www/tmplog/tempdb2.db'
 
-
-
 # store the temperature in the database
 def log_temperature(iD, temp):
     conn=sqlite3.connect(dbname)
