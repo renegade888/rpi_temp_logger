@@ -58,15 +58,15 @@ def getSensorCount():
 def getSensorData(deviceId):
     conn=sqlite3.connect(dbname)
     curs=conn.cursor()
-    curs.execute("SELECT timestamp, value, sensor.sensor_id FROM sensor,sensor_data WHERE sensor.sensor_id = '%s'" % deviceId)
+    curs.execute("SELECT timestamp, value, sensor_data.sensor_id FROM sensor_data WHERE sensor_data.sensor_id ='%s'" % deviceId)
     rows=curs.fetchall()
     conn.close()
     devicedata =[]
     for row in rows:
-        rowdata = []
-        rowdata.append(format(str(row[0])))
-        rowdata.append(format(str(row[1])))
-        rowdata.append(format(str(row[2])))
+        rowdata =[]
+        rowdata.append(str(row[0]))
+        rowdata.append(str(row[1]))
+        rowdata.append(str(row[2]))
         devicedata.append(rowdata)
     return devicedata
 
@@ -82,15 +82,6 @@ def getSensorIds():
         table.append(format(str(device[0])))
     return table
 
-# convert rows from database into a javascript table
-def createTableFromDevice(deviceid):
-    rows = getSensorData(deviceid)
-    deviceTable=""
-    for row in rows[:-1]:
-        rowstr="['{0}', {1}],\n".format(str(row[0]),str(row[1]))
-        chart_table+=rowstr
-
-    return deviceTable
 #Creates the first item in data array based on #sensors
 def getBaseTable(sensorCount):
     baseTable = "['Time',"
@@ -111,10 +102,10 @@ def createMultiTable():
         basetable+="['{0}',{1},{2}],\n".format(str(d1[0]),str(d1[1]),str(d2[1]))
 
     basetable+="['{0}',{1},{2}]\n".format(str(d1[0]),str(d1[1]),str(d2[1]))
+    print basetable
     return basetable
 # convert rows from database into a javascript table
 def create_table(rows):
-    createMultiTable()
     chart_table=""
     for row in rows[:-1]:
         rowstr="['{0}', {1}],\n".format(str(row[1]),str(row[2]))
@@ -242,7 +233,7 @@ def validate_input(option_str):
             return option_str
         else:
             return None
-    else: 
+    else:
         return None
 
 
@@ -284,7 +275,8 @@ def main():
     print "<html>"
     # print the head section including the table
     # used by the javascript for the chart
-    printHTMLHead("Raspberry Pi Temperature Logger", createMultiTable())
+    #print createMultiTable()
+    printHTMLHead("Raspberry Pi Temperature Logger",createMultiTable())
     #print createMultiTable()
     # print the page body
     print "<body>"
