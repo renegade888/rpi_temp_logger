@@ -36,10 +36,8 @@ def get_data(interval):
     conn=sqlite3.connect(dbname)
     curs=conn.cursor()
     if interval == None:
-        #curs.execute("SELECT * FROM sensor_data")
         curs.execute("SELECT sensor.sensor_id, timestamp, value FROM sensor,sensor_data")
     else:
-         #curs.execute("SELECT * FROM sensor_data WHERE timestamp>datetime('now','-%s hours')" % interval)
          curs.execute("SELECT sensor.sensor_id, timestamp, value FROM sensor,sensor_data WHERE timestamp>datetime('now','-%s hours')" % interval)
 
     rows=curs.fetchall()
@@ -58,7 +56,7 @@ def getSensorCount():
 def getSensorData(deviceId):
     conn=sqlite3.connect(dbname)
     curs=conn.cursor()
-    curs.execute("SELECT timestamp, value, sensor_data.sensor_id FROM sensor_data WHERE sensor_data.sensor_id ='%s'" % deviceId)
+    curs.execute("SELECT timestamp, value FROM sensor_data WHERE sensor_data.sensor_id ='%s'" % deviceId)
     rows=curs.fetchall()
     conn.close()
     devicedata =[]
@@ -66,7 +64,6 @@ def getSensorData(deviceId):
         rowdata =[]
         rowdata.append(str(row[0]))
         rowdata.append(str(row[1]))
-        rowdata.append(str(row[2]))
         devicedata.append(rowdata)
     return devicedata
 
