@@ -35,7 +35,6 @@ def printHTMLHead(title, table):
 def get_data(interval):
     conn=sqlite3.connect(dbname)
     curs=conn.cursor()
-
     if interval == None:
         #curs.execute("SELECT * FROM sensor_data")
         curs.execute("SELECT sensor.sensor_id, timestamp, value FROM sensor,sensor_data")
@@ -46,24 +45,80 @@ def get_data(interval):
     rows=curs.fetchall()
     conn.close()
     return rows
-
+#Get the number of sensors
 def getSensorCount():
     conn=sqlite3.connect(dbname)
     curs=conn.cursor()
-    countRow=curs.execute("select count(DISTINCT sensor.sensor_id) from sensor;")
+    curs.execute("select count(DISTINCT sensor.sensor_id) from sensor;")
     rows=curs.fetchone()
     conn.close()
     return int(format((rows[0])))
 
+#get Sensor timestamp and value based on device ID 
+def getSensorData(deviceId):
+    conn=sqlite3.connect(dbname)
+    curs=conn.cursor()
+    curs.execute("SELECT timestamp, value, sensor.sensor_id FROM sensor,sensor_data WHERE sensor.sensor_id = '%s'" % deviceId)
+    rows=curs.fetchall()
+    conn.close()
+    devicedata =[]
+    for row in rows:
+        rowdata = []
+        rowdata.append(format(str(row[0])))
+        rowdata.append(format(str(row[1])))
+        rowdata.append(format(str(row[2])))
+        devicedata.append(rowdata)
+    return devicedata
+
+#return a list of sensorIds
+def getSensorIds():
+    conn=sqlite3.connect(dbname)
+    curs=conn.cursor()
+    sensorIdRow=curs.execute("select DISTINCT sensor.sensor_id from sensor;")
+    rows=curs.fetchall()
+    conn.close()
+    table =[]
+    for device in rows:
+        table.append(format(str(device[0])))
+    return table
+
+# convert rows from database into a javascript table
+def createTableFromDevice(deviceid):
+    rows = getSensorData(deviceid)
+    deviceTable=""
+    for row in rows[:-1]:
+        rowstr="['{0}', {1}],\n".format(str(row[0]),str(row[1]))
+        chart_table+=rowstr
+
+    return deviceTable
+#Creates the first item in data array based on #sensors
+def getBaseTable(sensorCount):
+    baseTable = "['Time',"
+    for sensor in range(0,sensorCount-1):
+        rowstr="'Sensor{0}',".format(str(sensor+1))
+        baseTable += rowstr
+    baseTable+="'Sensor{0}'],\n".format(str(sensor+2))
+    return baseTable
+
+def createMultiTable():
+    sensorCount = getSensorCount()
+    basetable=getBaseTable(sensorCount)
+    devicedata = []
+    for device in getSensorIds():
+        devicedata.append(getSensorData(device))
+
+    for d1, d2 in zip(devicedata[0],devicedata[1]):
+        basetable+="['{0}',{1},{2}],\n".format(str(d1[0]),str(d1[1]),str(d2[1]))
+
+    basetable+="['{0}',{1},{2}]\n".format(str(d1[0]),str(d1[1]),str(d2[1]))
+    return basetable
 # convert rows from database into a javascript table
 def create_table(rows):
+    createMultiTable()
     chart_table=""
-    table =[]
-    data = []
     for row in rows[:-1]:
         rowstr="['{0}', {1}],\n".format(str(row[1]),str(row[2]))
         chart_table+=rowstr
-    print chart_table
     return chart_table
 
 # print the javascript to generate the chart
@@ -78,8 +133,7 @@ def print_graph_script(table):
       google.setOnLoadCallback(drawChart);
       function drawChart() {
         var data = google.visualization.arrayToDataTable([
-          ['Time', 'Temperature'],
-%s
+          %s
         ]);
 
         var options = {
@@ -230,8 +284,8 @@ def main():
     print "<html>"
     # print the head section including the table
     # used by the javascript for the chart
-    printHTMLHead("Raspberry Pi Temperature Logger", table)
-
+    printHTMLHead("Raspberry Pi Temperature Logger", createMultiTable())
+    #print createMultiTable()
     # print the page body
     print "<body>"
     print "<h1>Raspberry Pi Temperature Logger</h1>"
