@@ -28,21 +28,6 @@ def printHTMLHead(title, table):
 
     print "</head>"
 
-
-# get data from the database
-# if an interval is passed, 
-# return a list of records from the database
-def get_data(interval):
-    conn=sqlite3.connect(dbname)
-    curs=conn.cursor()
-    if interval == None:
-        curs.execute("SELECT sensor.sensor_id, timestamp, value FROM sensor,sensor_data")
-    else:
-         curs.execute("SELECT sensor.sensor_id, timestamp, value FROM sensor,sensor_data WHERE timestamp>datetime('now','-%s hours')" % interval)
-
-    rows=curs.fetchall()
-    conn.close()
-    return rows
 #Get the number of sensors
 def getSensorCount():
     conn=sqlite3.connect(dbname)
@@ -53,10 +38,13 @@ def getSensorCount():
     return int(format((rows[0])))
 
 #get Sensor timestamp and value based on device ID 
-def getSensorData(deviceId):
+def getSensorData(deviceId, interval):
     conn=sqlite3.connect(dbname)
     curs=conn.cursor()
-    curs.execute("SELECT timestamp, value FROM sensor_data WHERE sensor_data.sensor_id ='%s'" % deviceId)
+    if interval is None:
+        curs.execute("SELECT timestamp, value FROM sensor_data WHERE sensor_data.sensor_id ='%s'" % deviceId)
+    else:
+        curs.execute("SELECT timestamp, value FROM sensor_data WHERE sensor_data.sensor_id ='{0}' AND timestamp>datetime('now','-{1} hours')".format(deviceId, interval))
     rows=curs.fetchall()
     conn.close()
     devicedata =[]
@@ -88,12 +76,12 @@ def getBaseTable(sensorCount):
     baseTable+="'Sensor{0}'],\n".format(str(sensor+2))
     return baseTable
 
-def createMultiTable():
+def createMultiTable(interval):
     sensorCount = getSensorCount()
     basetable=getBaseTable(sensorCount)
     devicedata = []
     for device in getSensorIds():
-        devicedata.append(getSensorData(device))
+        devicedata.append(getSensorData(device,interval))
 
     for d1, d2 in zip(devicedata[0],devicedata[1]):
         basetable+="['{0}',{1},{2}],\n".format(str(d1[0]),str(d1[1]),str(d2[1]))
@@ -262,7 +250,7 @@ def main():
 
     if len(records) != 0:
         # convert the data into a table
-        table=create_table(records)
+        table=createMultiTable(interval)
     else:
         print "No data found"
         return
@@ -272,7 +260,7 @@ def main():
     # print the head section including the table
     # used by the javascript for the chart
     #print createMultiTable()
-    printHTMLHead("Raspberry Pi Temperature Logger",createMultiTable())
+    printHTMLHead("Raspberry Pi Temperature Logger", table)
     #print createMultiTable()
     # print the page body
     print "<body>"
