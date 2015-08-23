@@ -162,11 +162,10 @@ def show_stats(interval):
     print "<table>"
     print "<tr><td><strong>Date/Time</strong></td><td><strong>Temperature</strong></td></tr>"
 
-    rows=curs.execute("SELECT * FROM sensor_data WHERE timestamp>datetime('new','-1 hour') AND timestamp<=datetime('new')")
+    rows=curs.execute("SELECT timestamp,value FROM sensor_data WHERE timestamp>datetime('now','-1 hour') AND timestamp<=datetime('now')")
     for row in rows:
         rowstr="<tr><td>{0}&emsp;&emsp;</td><td>{1}C</td></tr>".format(str(row[0]),str(row[1]))
         print rowstr
-        print "hest"
     print "</table>"
 
     print "<hr>"
