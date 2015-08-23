@@ -37,27 +37,34 @@ def get_data(interval):
     curs=conn.cursor()
 
     if interval == None:
-        curs.execute("SELECT * FROM sensor_data")
+        #curs.execute("SELECT * FROM sensor_data")
+        curs.execute("SELECT sensor.sensor_id, timestamp, value FROM sensor,sensor_data")
     else:
-         curs.execute("SELECT * FROM sensor_data WHERE timestamp>datetime('now','-%s hours')" % interval)
+         #curs.execute("SELECT * FROM sensor_data WHERE timestamp>datetime('now','-%s hours')" % interval)
+         curs.execute("SELECT sensor.sensor_id, timestamp, value FROM sensor,sensor_data WHERE timestamp>datetime('now','-%s hours')" % interval)
 
     rows=curs.fetchall()
     conn.close()
     return rows
 
+def getSensorCount():
+    conn=sqlite3.connect(dbname)
+    curs=conn.cursor()
+    countRow=curs.execute("select count(DISTINCT sensor.sensor_id) from sensor;")
+    rows=curs.fetchone()
+    conn.close()
+    return int(format((rows[0])))
+
 # convert rows from database into a javascript table
 def create_table(rows):
     chart_table=""
+    table =[]
+    data = []
     for row in rows[:-1]:
         rowstr="['{0}', {1}],\n".format(str(row[1]),str(row[2]))
         chart_table+=rowstr
-
-    row=rows[-1]
-    rowstr="['{0}', {1}]\n".format(str(row[1]),str(row[2]))
-    chart_table+=rowstr
-    #print chart_table
+    print chart_table
     return chart_table
-
 
 # print the javascript to generate the chart
 # pass the table generated from the database info
@@ -83,7 +90,6 @@ def print_graph_script(table):
         chart.draw(data, options);
       }
     </script>"""
-
     print chart_code % (table)
 
 # print the div that contains the graph
