@@ -1,16 +1,18 @@
 Installation: 
 git clone https://github.com/poohzrn/rpi_temp_logger ~/rpi_temp_logger 
+cd ~/rpi_temp_logger
 chmod +x install.sh
 ./install.sh
 
-Add the following to the file : /etc/apache2/sites-enabled/000-default
+Add the following to the file: /etc/apache2/sites-enabled/000-default
     <Directory /var/www/tmplog
         Options +ExecCGI
         DirectoryIndex index.py
     </Directory>
     AddHandler cgi-script .py
     DocumentRoot /var/www/tmplog
-Add the following to the file /boot/config.txt
+
+Add the following to the file: /boot/config.txt
 dtoverlay=w1-gpio
 
 Raspberry Pi Temperature Logger
