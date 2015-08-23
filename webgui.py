@@ -99,7 +99,6 @@ def createMultiTable():
         basetable+="['{0}',{1},{2}],\n".format(str(d1[0]),str(d1[1]),str(d2[1]))
 
     basetable+="['{0}',{1},{2}]\n".format(str(d1[0]),str(d1[1]),str(d2[1]))
-    print basetable
     return basetable
 # convert rows from database into a javascript table
 def create_table(rows):
