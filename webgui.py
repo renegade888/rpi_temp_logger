@@ -5,12 +5,9 @@ import sys
 import cgi
 import cgitb
 
-
 # global variables
 speriod=(15*60)-1
 dbname='/var/www/tmplog/tempdb2.db'
-
-
 
 # print the HTTP header
 def printHTTPheader():
@@ -23,9 +20,7 @@ def printHTMLHead(title, table):
     print "    <title>"
     print title
     print "    </title>"
-
     print_graph_script(table)
-
     print "</head>"
 
 #Get the number of sensors
@@ -75,7 +70,9 @@ def getBaseTable(sensorCount):
         baseTable += rowstr
     baseTable+="'Sensor{0}'],\n".format(str(sensor+2))
     return baseTable
-
+# TODO - Make this thing dynamic. 
+# To more sensors added, add them in in line 83+84+85
+# convert rows from database into a javascript table
 def createMultiTable(interval):
     sensorCount = getSensorCount()
     basetable=getBaseTable(sensorCount)
@@ -85,16 +82,8 @@ def createMultiTable(interval):
 
     for d1, d2 in zip(devicedata[0],devicedata[1]):
         basetable+="['{0}',{1},{2}],\n".format(str(d1[0]),str(d1[1]),str(d2[1]))
-
     basetable+="['{0}',{1},{2}]\n".format(str(d1[0]),str(d1[1]),str(d2[1]))
     return basetable
-# convert rows from database into a javascript table
-def create_table(rows):
-    chart_table=""
-    for row in rows[:-1]:
-        rowstr="['{0}', {1}],\n".format(str(row[1]),str(row[2]))
-        chart_table+=rowstr
-    return chart_table
 
 # print the javascript to generate the chart
 # pass the table generated from the database info
@@ -124,8 +113,7 @@ def print_graph_script(table):
 # print the div that contains the graph
 def show_graph():
     print "<h2>Temperature Chart</h2>"
-    print '<div id="chart_div" style="width: 900px; height: 500px;"></div>'
-
+    print '<div id="chart_div" style="width: 1300px; height: 500px;"></div>'
 
 # connect to the db and show some stats
 # argument option is the number of hours
@@ -160,16 +148,14 @@ def show_stats(interval):
 
     print "<h2>In the last hour:</h2>"
     print "<table>"
-    print "<tr><td><strong>Date/Time</strong></td><td><strong>Temperature</strong></td></tr>"
+    print "<tr><td><strong>Date/Time</strong></td><td><strong>Temperature</strong></td><td><strong>Device</strong></td></tr>"
 
-    rows=curs.execute("SELECT timestamp,value FROM sensor_data WHERE timestamp>datetime('now','-1 hour') AND timestamp<=datetime('now')")
+    rows=curs.execute("SELECT timestamp,value,sensor_id FROM sensor_data WHERE timestamp>datetime('now','-1 hour') AND timestamp<=datetime('now')")
     for row in rows:
-        rowstr="<tr><td>{0}&emsp;&emsp;</td><td>{1}C</td></tr>".format(str(row[0]),str(row[1]))
+        rowstr="<tr><td>{0}&emsp;&emsp;</td><td>{1}C</td><td>{2}</td></tr>".format(str(row[0]),str(row[1]),str(row[2]))
         print rowstr
     print "</table>"
-
     print "<hr>"
-
     conn.close()
 
 def print_time_selector(option):
@@ -235,25 +221,18 @@ def getTimeInterval():
 # main function
 # This is where the program starts 
 def main():
-
     cgitb.enable()
-
     # get options that may have been passed to this script
     interval=getTimeInterval()
-
     if not interval:
         interval= str(24) #24 hour std interval
-
     # get data from the database
     table=createMultiTable(interval)
-
     # print the HTTP header
     printHTTPheader()
-
     if len(table) is 0:
         print "No data found"
         return
-
     # start printing the page
     print "<html>"
     # print the head section including the table
@@ -270,7 +249,6 @@ def main():
     show_stats(interval)
     print "</body>"
     print "</html>"
-
     sys.stdout.flush()
 
 if __name__=="__main__":
