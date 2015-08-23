@@ -14,6 +14,8 @@ Add the following to the file: /etc/apache2/sites-enabled/000-default
 
 Add the following to the file: /boot/config.txt
 dtoverlay=w1-gpio
+Cron job:
+* * * * * /usr/lib/cgi-bin/monitor.py
 
 Raspberry Pi Temperature Logger
 ===============================
