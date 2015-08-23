@@ -101,7 +101,9 @@ def print_graph_script(table):
         ]);
 
         var options = {
-          title: 'Temperature'
+          title: 'Temperature',
+          curveType: 'function'
+
         };
 
         var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
