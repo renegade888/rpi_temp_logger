@@ -164,7 +164,6 @@ def print_time_selector(option):
         <select name="timeinterval">"""
 
     if option is not None:
-
         if option == "1":
             print "<option value=\"1\" selected=\"selected\">the last 1 hour</option>"
         else:
@@ -217,7 +216,6 @@ def getTimeInterval():
         return validate_input (option)
     else:
         return None
-
 # main function
 # This is where the program starts 
 def main():
