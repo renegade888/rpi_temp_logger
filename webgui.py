@@ -184,12 +184,16 @@ def print_time_selector(option):
             print "<option value=\"24\" selected=\"selected\">the last 24 hours</option>"
         else:
             print "<option value=\"24\">the last 24 hours</option>"
-
+        if option == "168":
+            print "<option value=\"168\" selected=\"selected\">the last week</option>"
+        else:
+            print "<option value=\"168\">the last week</option>"
     else:
         print """<option value="1">the last 1 hour</option>
             <option value="6">the last 6 hours</option>
             <option value="12">the last 12 hours</option>
-            <option value="24" selected="selected">the last 24 hours</option>"""
+            <option value="24" selected="selected">the last 24 hours</option>
+            <option value="168" selected="selected">the last week</option>"""
 
     print """        </select>
         <input type="submit" value="Display">
@@ -202,7 +206,7 @@ def validate_input(option_str):
     # check that the option string represents a number
     if option_str.isalnum():
         # check that the option is within a specific range
-        if int(option_str) > 0 and int(option_str) <= 24:
+        if int(option_str) > 0 and int(option_str) <= 168:
             return option_str
         else:
             return None
