@@ -1,6 +1,6 @@
 CREATE TABLE sensor_data (
         sensor_id TEXT NOT NULL,
-        timestamp datetime NOT NULL DEFAULT current_timestamp,
+	timestamp datetime NOT NULL DEFAULT (DATETIME(CURRENT_TIMESTAMP, 'LOCALTIME')),
         value real NOT NULL
 );
 CREATE TABLE sensor (
