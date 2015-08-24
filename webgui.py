@@ -54,21 +54,23 @@ def getSensorData(deviceId, interval):
 def getSensorIds():
     conn=sqlite3.connect(dbname)
     curs=conn.cursor()
-    sensorIdRow=curs.execute("select DISTINCT sensor.sensor_id from sensor;")
+    sensorIdRow=curs.execute("select DISTINCT sensor.sensor_id, sensor.sensor_name from sensor;")
     rows=curs.fetchall()
     conn.close()
     table =[]
     for device in rows:
         table.append(format(str(device[0])))
+        table.append(format(str(device[1])))
     return table
 
 #Creates the first item in data array based on #sensors
 def getBaseTable(sensorCount):
     baseTable = "['Time',"
-    for sensor in range(0,sensorCount-1):
-        rowstr="'Sensor{0}',".format(str(sensor+1))
+    sensorids = getSensorIds()
+    for sensor in sensorids[:-1]
+        rowstr="'{0}',".format(str(sensor[1]))
         baseTable += rowstr
-    baseTable+="'Sensor{0}'],\n".format(str(sensor+2))
+    baseTable+="'{0}'],\n".format(str(sensorids[-1][1]))
     return baseTable
 # TODO - Make this thing dynamic. 
 # To more sensors added, add them in in line 83+84+85
