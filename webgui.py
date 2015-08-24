@@ -231,12 +231,13 @@ def main():
     if not interval:
         interval= str(24) #24 hour std interval
     # get data from the database
-    table=createMultiTable(interval)
-    # print the HTTP header
     printHTTPheader()
-    if len(table) is 0:
+    if getSensorCount() is 0:
         print "No data found"
         return
+    else:
+        table=createMultiTable(interval)
+    # print the HTTP header
     # start printing the page
     print "<html>"
     # print the head section including the table
