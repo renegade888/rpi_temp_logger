@@ -166,7 +166,7 @@ def show_stats(interval):
     conn.close()
 
 def print_time_selector(option):
-    print """<form action="" method="POST">
+    print """<form action="/index.py" method="POST">
         Show the temperature logs for  
         <select name="timeinterval">"""
 
