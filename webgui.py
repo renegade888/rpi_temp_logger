@@ -83,11 +83,13 @@ def createMultiTable(interval):
     devicedata = []
     for device in getSensorIds():
         devicedata.append(getSensorData(device[0],interval))
-
-    for d1, d2, d3 in zip(devicedata[0],devicedata[1],devicedata[2]):
-        basetable+="['{0}',{1},{2},{3}],\n".format(str(d1[0]),str(d1[1]),str(d2[1]),str(d3[1]))
-
-    basetable+="['{0}',{1},{2},{3}]\n".format(str(d1[0]),str(d1[1]),str(d2[1]),str(d3[1]))
+    #for each tuple(deviceN) returned from zip 
+    #add Date (parameter 0) to the js table index 0 - Always from device0
+    #add temeraturedata for sensor N (1-3) index 1
+    for device0, device1, device2 in zip(devicedata[0],devicedata[1],devicedata[2]):
+        basetable+="['{0}',{1},{2},{3}],\n".format(str(device0[0]),str(device0[1]),str(device1[1]),str(device2[1]))
+    #Same as above, except that the js arry is ended without a comma
+    basetable+="['{0}',{1},{2},{3}]\n".format(str(device0[0]),str(device0[1]),str(device1[1]),str(device2[1]))
     return basetable
 
 # print the javascript to generate the chart
