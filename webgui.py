@@ -84,10 +84,10 @@ def createMultiTable(interval):
     for device in getSensorIds():
         devicedata.append(getSensorData(device[0],interval))
 
-    for d1, d2 in zip(devicedata[0],devicedata[1]):
-        basetable+="['{0}',{1},{2}],\n".format(str(d1[0]),str(d1[1]),str(d2[1]))
+    for d1, d2, d3 in zip(devicedata[0],devicedata[1],devicedata[2]):
+        basetable+="['{0}',{1},{2},{3}],\n".format(str(d1[0]),str(d1[1]),str(d2[1]),str(d3[1]))
 
-    basetable+="['{0}',{1},{2}]\n".format(str(d1[0]),str(d1[1]),str(d2[1]))
+    basetable+="['{0}',{1},{2},{3}]\n".format(str(d1[0]),str(d1[1]),str(d2[1]),str(d3[1]))
     return basetable
 
 # print the javascript to generate the chart
