@@ -54,34 +54,39 @@ def getSensorData(deviceId, interval):
 def getSensorIds():
     conn=sqlite3.connect(dbname)
     curs=conn.cursor()
-    sensorIdRow=curs.execute("select DISTINCT sensor.sensor_id from sensor;")
+    sensorIdRow=curs.execute("select DISTINCT sensor.sensor_id, sensor.sensor_name from sensor;")
     rows=curs.fetchall()
     conn.close()
-    table =[]
-    for device in rows:
-        table.append(format(str(device[0])))
-    return table
+    devicedata =[]
+    for row in rows:
+        rowdata =[]
+        rowdata.append(str(row[0]))
+        rowdata.append(str(row[1]))
+        devicedata.append(rowdata)
+    return devicedata
 
 #Creates the first item in data array based on #sensors
-def getBaseTable(sensorCount):
+def getBaseTable():
     baseTable = "['Time',"
-    for sensor in range(0,sensorCount-1):
-        rowstr="'Sensor{0}',".format(str(sensor+1))
+    sensorids = getSensorIds()
+    for sensor in sensorids[:-1]:#every sensor except last sensor
+        rowstr="'{0}',".format(str(sensor[1]))
         baseTable += rowstr
-    baseTable+="'Sensor{0}'],\n".format(str(sensor+2))
+    baseTable+="'{0}'],\n".format(str(sensorids[-1][1]))#last sensor (-1) #sensorname[1]
     return baseTable
 # TODO - Make this thing dynamic. 
 # To more sensors added, add them in in line 83+84+85
 # convert rows from database into a javascript table
 def createMultiTable(interval):
     sensorCount = getSensorCount()
-    basetable=getBaseTable(sensorCount)
+    basetable=getBaseTable()
     devicedata = []
     for device in getSensorIds():
-        devicedata.append(getSensorData(device,interval))
+        devicedata.append(getSensorData(device[0],interval))
 
     for d1, d2 in zip(devicedata[0],devicedata[1]):
         basetable+="['{0}',{1},{2}],\n".format(str(d1[0]),str(d1[1]),str(d2[1]))
+
     basetable+="['{0}',{1},{2}]\n".format(str(d1[0]),str(d1[1]),str(d2[1]))
     return basetable
 
@@ -161,7 +166,7 @@ def show_stats(interval):
     conn.close()
 
 def print_time_selector(option):
-    print """<form action="" method="POST">
+    print """<form action="/index.py" method="POST">
         Show the temperature logs for  
         <select name="timeinterval">"""
 
