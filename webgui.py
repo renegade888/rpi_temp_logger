@@ -6,7 +6,6 @@ import cgi
 import cgitb
 
 # global variables
-speriod=(15*60)-1
 dbname='/var/www/tmplog/tempdb2.db'
 
 # print the HTTP header
