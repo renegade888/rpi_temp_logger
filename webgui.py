@@ -132,17 +132,16 @@ def show_stats(interval):
     if not interval:
         interval = str(24)
 
-    curs.execute("SELECT timestamp,max(value) FROM sensor_data WHERE timestamp>datetime('now','-%s hour') AND timestamp<=datetime('now')" % interval)
+    curs.execute("SELECT timestamp,max(value) FROM sensor_data WHERE timestamp>datetime('now','-%s hour') AND timestamp<=datetime('now','+2 hour')" % interval)
     rowmax=curs.fetchone()
     rowstrmax="{0}&nbsp&nbsp&nbsp{1}C".format(str(rowmax[0]),str(rowmax[1]))
 
-    curs.execute("SELECT timestamp,min(value) FROM sensor_data WHERE timestamp>datetime('now','-%s hour') AND timestamp<=datetime('now')" % interval)
+    curs.execute("SELECT timestamp,min(value) FROM sensor_data WHERE timestamp>datetime('now','-%s hour') AND timestamp<=datetime('now','+2 hour')" % interval)
     rowmin=curs.fetchone()
     rowstrmin="{0}&nbsp&nbsp&nbsp{1}C".format(str(rowmin[0]),str(rowmin[1]))
 
-    curs.execute("SELECT avg(value) FROM sensor_data WHERE timestamp>datetime('now','-%s hour') AND timestamp<=datetime('now')" % interval)
+    curs.execute("SELECT avg(value) FROM sensor_data WHERE timestamp>datetime('now','-%s hour') AND timestamp<=datetime('now','+2 hour')" % interval)
     rowavg=curs.fetchone()
-
 
     print "<hr>"
     print "<h2>Minumum temperature&nbsp</h2>"
@@ -250,7 +249,6 @@ def main():
     # used by the javascript for the chart
     #print createMultiTable()
     printHTMLHead("Raspberry Pi Temperature Logger", table)
-    #print createMultiTable()
     # print the page body
     print "<body>"
     print "<h1>Raspberry Pi Temperature Logger</h1>"
