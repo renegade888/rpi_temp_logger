@@ -2,12 +2,16 @@
 
 import sqlite3
 import sys
+import platform
+from collections import namedtuple
 import cgi
 import cgitb
 
+SensorRecord = namedtuple('sensor','sensor_name, sensor_id')
+SensorDataRecord = namedtuple('sensor_data','sensorid_id,timestamp,value')
 # global variables
 dbname='/var/www/tmplog/tempdb2.db'
-
+print platform.python_version()
 # print the HTTP header
 def printHTTPheader():
     print "Content-type: text/html\n\n"
@@ -20,7 +24,28 @@ def printHTMLHead(title, table):
     print title
     print "    </title>"
     print_graph_script(table)
+
+    ob = Sensor("device1")
+#    print ob.data
+#    print ob.name
+#    print ob.sid
+#    print ob.GetData(1)
     print "</head>"
+
+class Sensor():
+    """
+    Sensor class for sensors
+    """
+    def __init__(self,sensorId):
+        self.data=[]
+        self.name="to do"
+        self.sid=sensorId
+    def GetData(self,interval):
+        conn=sqlite3.connect(dbname)
+        curs=conn.cursor()
+        curs.execute("SELECT timestamp, value FROM sensor_data WHERE sensor_data.sensor_id ='{0}' AND timestamp>=datetime('now','-{1} hours','+2 hours')".format(self.sid, interval))
+        rows=curs.fetchall()
+        conn.close()
 
 #Get the number of sensors
 def getSensorCount():
@@ -32,23 +57,16 @@ def getSensorCount():
     return int(format((rows[0])))
 
 #get Sensor timestamp and value based on device ID 
-def getSensorData(deviceId, interval):
+def getSensorData(interval):
     conn=sqlite3.connect(dbname)
     curs=conn.cursor()
     if interval is None:
         #uptimize - we dont need all data
         curs.execute("SELECT timestamp, value FROM sensor_data WHERE sensor_data.sensor_id ='%s'" % deviceId)
     else:
-        curs.execute("SELECT timestamp, value FROM sensor_data WHERE sensor_data.sensor_id ='{0}' AND timestamp>=datetime('now','-{1} hours','+2 hours')".format(deviceId, interval))
-    rows=curs.fetchall()
-    conn.close()
-    devicedata =[]
-    for row in rows:
-        rowdata =[]
-        rowdata.append(str(row[0]))
-        rowdata.append(str(row[1]))
-        devicedata.append(rowdata)
-    return devicedata
+        curs.execute("SELECT sensor_data.sensor_id, timestamp, value FROM sensor_data WHERE timestamp>=datetime('now','-{0} hours','+2 hours')".format(interval))
+    #rows=curs.fetchall()
+    return map(SensorDataRecord._make,curs.fetchall())
 
 #return a list of sensorIds
 def getSensorIds():
@@ -79,18 +97,27 @@ def getBaseTable():
 # convert rows from database into a javascript table
 def createMultiTable(interval):
     sensorCount = getSensorCount()
-    basetable=getBaseTable()
-    devicedata = []
-    for device in getSensorIds():
-        devicedata.append(getSensorData(device[0],interval))
-    #for each tuple(deviceN) returned from zip 
-    #add Date (parameter 0) to the js table index 0 - Always from device0
-    #add temeraturedata for sensor N (1-3) index 1
-    for device0, device1, device2 in zip(devicedata[0],devicedata[1],devicedata[2]):
-        basetable+="['{0}',{1},{2},{3}],\n".format(str(device0[0]),str(device0[1]),str(device1[1]),str(device2[1]))
-    #Same as above, except that the js arry is ended without a comma
-    basetable+="['{0}',{1},{2},{3}]\n".format(str(device0[0]),str(device0[1]),str(device1[1]),str(device2[1]))
-    return basetable
+    dataTable=getBaseTable()
+    devicedata = getSensorData(interval)
+    dataTable+="['{0}','{1}',".format(devicedata[0].timestamp,devicedata[0].value)
+    cnt = 1
+    for data in devicedata[1:-1]:
+        if cnt % sensorCount is 0:
+            dataTable+="],\n["
+            dataTable+="'{0}',".format(data.timestamp)
+            cnt = 0
+        if cnt is sensorCount:
+            dataTable+="]'{0}'".format(data.value)
+            cnt = 0
+        if cnt is sensorCount -1:
+            dataTable+="'{0}'".format(data.value)
+        elif cnt is not sensorCount:
+            dataTable+="'{0}',".format(data.value)
+        cnt += 1
+    dataTable+="'{0}']".format(devicedata[-1].value)
+
+    print dataTable
+    return dataTable
 
 # print the javascript to generate the chart
 # pass the table generated from the database info
@@ -235,31 +262,31 @@ def main():
     # get options that may have been passed to this script
     interval=getTimeInterval()
     if not interval:
-        interval= str(24) #24 hour std interval
+        interval= str(1) #24 hour std interval
     # get data from the database
-    printHTTPheader()
+    #printHTTPheader()
     if getSensorCount() is 0:
         print "No data found"
         return
-    else:
-        table=createMultiTable(interval)
+#    else:
+#        table=createMultiTable(interval)
     # print the HTTP header
     # start printing the page
-    print "<html>"
+#    print "<html>"
     # print the head section including the table
     # used by the javascript for the chart
-    #print createMultiTable()
-    printHTMLHead("Raspberry Pi Temperature Logger", table)
-    # print the page body
-    print "<body>"
-    print "<h1>Temperature Logger</h1>"
-    print "<hr>"
-    print_time_selector(interval)
-    show_graph()
-    show_stats(interval)
-    print "</body>"
-    print "</html>"
-    sys.stdout.flush()
+    createMultiTable(1)
+#    #printHTMLHead("Raspberry Pi Temperature Logger", table)
+#    # print the page body
+#    print "<body>"
+#    print "<h1>Temperature Logger</h1>"
+#    print "<hr>"
+#    print_time_selector(interval)
+#    #show_graph()
+#    #show_stats(interval)
+#    print "</body>"
+#    print "</html>"
+#    sys.stdout.flush()
 
 if __name__=="__main__":
     main()
