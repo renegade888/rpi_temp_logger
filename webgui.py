@@ -56,7 +56,6 @@ def createMultiTable(interval):
         dataTable+="'{0}',".format(sensorData[name].name)
     dataTable+="'{0}'],\n".format(sensorData[-1].name)#last sensor (-1) #sensorname[1]
     dataTable+="['{0}',{1},".format(sensorData[0].timestamp[:-3],sensorData[0].temperature)
-
     counter = 1
     for data in sensorData[1:-1]:
         if counter % sensorCount is 0:
