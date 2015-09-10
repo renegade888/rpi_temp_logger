@@ -36,9 +36,10 @@ def getSensorData(deviceId, interval):
     conn=sqlite3.connect(dbname)
     curs=conn.cursor()
     if interval is None:
+        #uptimize - we dont need all data
         curs.execute("SELECT timestamp, value FROM sensor_data WHERE sensor_data.sensor_id ='%s'" % deviceId)
     else:
-        curs.execute("SELECT timestamp, value FROM sensor_data WHERE sensor_data.sensor_id ='{0}' AND timestamp>datetime('now','-{1} hours')".format(deviceId, interval))
+        curs.execute("SELECT timestamp, value FROM sensor_data WHERE sensor_data.sensor_id ='{0}' AND timestamp>=datetime('now','-{1} hours','+2 hours')".format(deviceId, interval))
     rows=curs.fetchall()
     conn.close()
     devicedata =[]
@@ -121,7 +122,7 @@ def print_graph_script(table):
 # print the div that contains the graph
 def show_graph():
     print "<h2>Temperature Chart</h2>"
-    print '<div id="chart_div" style="width: 1300px; height: 500px;"></div>'
+    print '<div id="chart_div" style="width: 1000px; height: 500px;"></div>'
 
 # connect to the db and show some stats
 # argument option is the number of hours
@@ -157,7 +158,7 @@ def show_stats(interval):
     print "<table>"
     print "<tr><td><strong>Date/Time</strong></td><td><strong>Temperature</strong></td><td><strong>Device</strong></td></tr>"
 
-    rows=curs.execute("SELECT timestamp,value,sensor_id FROM sensor_data WHERE timestamp>datetime('now','-1 hour') AND timestamp<=datetime('now')")
+    rows=curs.execute("SELECT timestamp,value,sensor_id FROM sensor_data WHERE timestamp>datetime('now','+1 hour') AND timestamp<=datetime('now','+2 hour')")
     for row in rows:
         rowstr="<tr><td>{0}&emsp;&emsp;</td><td>{1}C</td><td>{2}</td></tr>".format(str(row[0]),str(row[1]),str(row[2]))
         print rowstr
@@ -251,7 +252,7 @@ def main():
     printHTMLHead("Raspberry Pi Temperature Logger", table)
     # print the page body
     print "<body>"
-    print "<h1>Raspberry Pi Temperature Logger</h1>"
+    print "<h1>Temperature Logger</h1>"
     print "<hr>"
     print_time_selector(interval)
     show_graph()
