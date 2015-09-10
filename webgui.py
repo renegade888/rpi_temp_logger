@@ -7,8 +7,6 @@ from collections import namedtuple
 import cgi
 import cgitb
 
-SensorRecord = namedtuple('sensor','sensor_name, sensor_id')
-SensorDataRecord = namedtuple('sensor_data','sensorid_id,timestamp,value')
 # global variables
 dbname='/var/www/tmplog/tempdb2.db'
 
@@ -35,70 +33,50 @@ def getSensorCount():
     conn.close()
     return int(format((rows[0])))
 
-#get Sensor timestamp and value based on device ID 
+#get data from sensors based on a given interval
+#todo singleton
 def getSensorData(interval):
+    SensorDataRecord = namedtuple('sensor_data','name,timestamp,temperature')
     conn=sqlite3.connect(dbname)
     curs=conn.cursor()
     if interval is None:
         #uptimize - we dont need all data
-        curs.execute("SELECT sensor_data.sensor_id, timestamp, value FROM sensor_data WHERE timestamp>=datetime('now','-1 hours','+2 hours')")
+        #todo fixed time
+        curs.execute("SELECT sensor.sensor_name, timestamp, value FROM sensor_data,sensor WHERE timestamp>=datetime('now','-1 hours','+2 hours') AND sensor.sensor_id = sensor_data.sensor_id")
     else:
-        curs.execute("SELECT sensor_data.sensor_id, timestamp, value FROM sensor_data WHERE timestamp>=datetime('now','-{0} hours','+2 hours')".format(interval))
+        curs.execute("SELECT sensor.sensor_name, timestamp, value FROM sensor_data,sensor WHERE timestamp>=datetime('now','-{0} hours','+2 hours') AND sensor.sensor_id = sensor_data.sensor_id".format(interval))
     return map(SensorDataRecord._make,curs.fetchall())
 
-#return a list of sensorIds
-def getSensorIds():
-    conn=sqlite3.connect(dbname)
-    curs=conn.cursor()
-    sensorIdRow=curs.execute("select DISTINCT sensor.sensor_id, sensor.sensor_name from sensor;")
-    rows=curs.fetchall()
-    conn.close()
-    devicedata =[]
-    for row in rows:
-        rowdata =[]
-        rowdata.append(str(row[0]))
-        rowdata.append(str(row[1]))
-        devicedata.append(rowdata)
-    return devicedata
-
-#Creates the first item in data array based on #sensors
-def getBaseTable():
-    baseTable = "['Time',"
-    sensorids = getSensorIds()
-    for sensor in sensorids[:-1]:#every sensor except last sensor
-        rowstr="'{0}',".format(str(sensor[1]))
-        baseTable += rowstr
-    baseTable+="'{0}'],\n".format(str(sensorids[-1][1]))#last sensor (-1) #sensorname[1]
-    return baseTable
-# TODO - Make this thing dynamic. 
-# To more sensors added, add them in in line 83+84+85
 # convert rows from database into a javascript table
 def createMultiTable(interval):
     sensorCount = getSensorCount()
-    dataTable=getBaseTable()
-    devicedata = getSensorData(interval)
-    dataTable+="['{0}',{1},".format(devicedata[0].timestamp,devicedata[0].value)
-    cnt = 1
-    for data in devicedata[1:-1]:
-        if cnt % sensorCount is 0:
+    sensorData = getSensorData(interval)
+    dataTable = "['Time',"
+    for name in range(0,sensorCount - 1):
+        dataTable+="'{0}',".format(sensorData[name].name)
+    dataTable+="'{0}'],\n".format(sensorData[-1].name)#last sensor (-1) #sensorname[1]
+    dataTable+="['{0}',{1},".format(sensorData[0].timestamp[:-3],sensorData[0].temperature)
+
+    counter = 1
+    for data in sensorData[1:-1]:
+        if counter % sensorCount is 0:
             dataTable+="],\n["
-            dataTable+="'{0}',".format(data.timestamp)
-            cnt = 0
-        if cnt is sensorCount:
-            dataTable+="]{0}".format(data.value)
-            cnt = 0
-        if cnt is sensorCount -1:
-            dataTable+="{0}".format(data.value)
-        elif cnt is not sensorCount:
-            dataTable+="{0},".format(data.value)
-        cnt += 1
-    dataTable+="'{0}']".format(devicedata[-1].value)
+            dataTable+="'{0}',".format(data.timestamp[:-3])
+            counter = 0
+        if counter is sensorCount:
+            dataTable+="]{0}".format(data.temperature)
+            counter = 0
+        if counter is sensorCount -1:
+            dataTable+="{0}".format(data.temperature)
+        elif counter is not sensorCount:
+            dataTable+="{0},".format(data.temperature)
+        counter += 1
+    dataTable+="'{0}']".format(sensorData[-1].temperature)
     return dataTable
 
 # print the javascript to generate the chart
 # pass the table generated from the database info
 def print_graph_script(table):
-
     # google chart snippet
     chart_code="""
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
@@ -106,16 +84,8 @@ def print_graph_script(table):
       google.load("visualization", "1", {packages:["corechart"]});
       google.setOnLoadCallback(drawChart);
       function drawChart() {
-        var data = google.visualization.arrayToDataTable([
-          %s
-        ]);
-
-        var options = {
-          title: 'Temperature',
-          curveType: 'function'
-
-        };
-
+        var data = google.visualization.arrayToDataTable([%s]);
+        var options = {title: 'Temperature', curveType: 'function'};
         var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
         chart.draw(data, options);
       }
@@ -132,38 +102,34 @@ def show_graph():
 def show_stats(interval):
     conn=sqlite3.connect(dbname)
     curs=conn.cursor()
-
     if not interval:
         interval = str(24)
 
     curs.execute("SELECT timestamp,max(value) FROM sensor_data WHERE timestamp>datetime('now','-%s hour') AND timestamp<=datetime('now','+2 hour')" % interval)
     rowmax=curs.fetchone()
-    rowstrmax="{0}&nbsp&nbsp&nbsp{1}C".format(str(rowmax[0]),str(rowmax[1]))
+    rowstrmax="{0}&nbsp{1}C".format((str(rowmax[0]))[:-3],(str(rowmax[1]))[:4])
 
     curs.execute("SELECT timestamp,min(value) FROM sensor_data WHERE timestamp>datetime('now','-%s hour') AND timestamp<=datetime('now','+2 hour')" % interval)
     rowmin=curs.fetchone()
-    rowstrmin="{0}&nbsp&nbsp&nbsp{1}C".format(str(rowmin[0]),str(rowmin[1]))
+    rowstrmin="{0}&nbsp{1}C".format((str(rowmin[0]))[:-3],(str(rowmin[1]))[:4])
 
     curs.execute("SELECT avg(value) FROM sensor_data WHERE timestamp>datetime('now','-%s hour') AND timestamp<=datetime('now','+2 hour')" % interval)
     rowavg=curs.fetchone()
-
-    print "<hr>"
-    print "<h2>Minumum temperature&nbsp</h2>"
+    print "<hr><strong>Minumum temperature&nbsp</strong>"
     print rowstrmin
-    print "<h2>Maximum temperature</h2>"
+    print "<strong>Maximum temperature</strong>"
     print rowstrmax
-    print "<h2>Average temperature</h2>"
+    print "<strong>Average temperature</strong>"
     print "%.3f" % rowavg+"C"
-
     print "<hr>"
-
     print "<h2>In the last hour:</h2>"
     print "<table>"
-    print "<tr><td><strong>Date/Time</strong></td><td><strong>Temperature</strong></td><td><strong>Device</strong></td></tr>"
+    print "<tr><td><strong>Date/Time</strong></td><td><strong>Temperature</strong></td><td><strong>Device</strong><td><strong>Sensor Name</strong></td></tr>"
 
-    rows=curs.execute("SELECT timestamp,value,sensor_id FROM sensor_data WHERE timestamp>datetime('now','+1 hour') AND timestamp<=datetime('now','+2 hour')")
+
+    rows=curs.execute("SELECT timestamp,value,sensor_data.sensor_id,sensor_name FROM sensor_data,sensor WHERE timestamp>datetime('now','+1 hour') AND timestamp<=datetime('now','+2 hour') AND sensor_data.sensor_id = sensor.sensor_id")
     for row in rows:
-        rowstr="<tr><td>{0}&emsp;&emsp;</td><td>{1}C</td><td>{2}</td></tr>".format(str(row[0]),str(row[1]),str(row[2]))
+        rowstr="<tr><td>{0}&emsp;&emsp;</td><td>{1}C</td><td>{2}</td><td>{3}</td></tr>".format((str(row[0]))[:-3],(str(row[1])[:4]),str(row[2]),str(row[3]))
         print rowstr
     print "</table>"
     print "<hr>"
@@ -204,7 +170,7 @@ def print_time_selector(option):
             <option value="24" selected="selected">the last 24 hours</option>
             <option value="168" selected="selected">the last week</option>"""
 
-    print """        </select>
+    print """</select>
         <input type="submit" value="Display">
     </form>"""
 
@@ -255,7 +221,7 @@ def main():
     print "<hr>"
     print_time_selector(interval)
     show_graph()
-    #show_stats(interval)
+    show_stats(interval)
     print "</body>"
     print "</html>"
     sys.stdout.flush()
