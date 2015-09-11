@@ -94,7 +94,7 @@ def print_graph_script(table):
 # print the div that contains the graph
 def show_graph():
     print "<h2>Temperature Chart</h2>"
-    print '<div id="chart_div" style="width: 1000px; height: 500px;"></div>'
+    print '<div id="chart_div" style="height: 500px;"></div>'
 
 # connect to the db and show some stats
 # argument option is the number of hours
