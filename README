@@ -1,5 +1,4 @@
-
-#Installation:
+##Installation:
 git clone https://github.com/poohzrn/rpi_temp_logger ~/rpi_temp_logger 
 cd ~/rpi_temp_logger
 chmod +x install.sh
@@ -30,7 +29,6 @@ sudo echo '<VirtualHost *:80>
          ErrorLog ${APACHE_LOG_DIR}/error.log
          CustomLog ${APACHE_LOG_DIR}/access.log combined
  </VirtualHost>' >> /etc/apache2/sites-enabled/tmplog.conf
-[![Data representation](http://i.imgur.com/DJL9V2J.png )](#features)
 
 
 Raspberry Pi Temperature Logger
