@@ -29,7 +29,7 @@ def main():
         return None
     else:
         for device in devicelist:
-            temperature = random.uniform(0.0,45.0)
+            temperature = random.uniform(15.0,25.0)
             deviceid = device
             print temperature
             print deviceid
