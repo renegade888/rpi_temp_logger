@@ -55,12 +55,12 @@ def createMultiTable(interval):
     for name in range(0,sensorCount - 1):
         dataTable+="'{0}',".format(sensorData[name].name)
     dataTable+="'{0}'],\n".format(sensorData[-1].name)#last sensor (-1) #sensorname[1]
-    dataTable+="['{0}',{1},".format(sensorData[0].timestamp[:-3],sensorData[0].temperature)
+    dataTable+="[new Date('{0}'),{1},".format(sensorData[0].timestamp[:-3],sensorData[0].temperature)
     counter = 1
     for data in sensorData[1:-1]:
         if counter % sensorCount is 0:
             dataTable+="],\n["
-            dataTable+="'{0}',".format(data.timestamp[:-3])
+            dataTable+="new Date('{0}'),".format(data.timestamp[:-3])
             counter = 0
         if counter is sensorCount:
             dataTable+="]{0}".format(data.temperature)
@@ -80,13 +80,27 @@ def print_graph_script(table):
     chart_code="""
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
     <script type="text/javascript">
-      google.load("visualization", "1", {packages:["corechart"]});
+      google.load("visualization", "1", {packages:["corechart","controls"]});
       google.setOnLoadCallback(drawChart);
       function drawChart() {
         var data = google.visualization.arrayToDataTable([%s]);
-        var options = {title: 'Temperature', curveType: 'function'};
-        var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
-        chart.draw(data, options);
+        var timeChart = new google.visualization.ChartWrapper({
+                'chartType': 'LineChart',
+                'containerId': 'chart_div',
+                'options': {
+                    'curveType' : 'function'
+                }
+            });
+        var timePicker = new google.visualization.ControlWrapper({
+                'controlType': 'ChartRangeFilter',
+                'containerId': 'dashboard_div',
+                'options': {
+                    'filterColumnLabel': 'Time'
+                }
+            });
+            var dashboard = new google.visualization.Dashboard(document.getElementById('dashboard_div'));
+            dashboard.bind(timePicker, timeChart);
+            dashboard.draw(data);
       }
     </script>"""
     print chart_code % (table)
@@ -95,6 +109,7 @@ def print_graph_script(table):
 def show_graph():
     print "<h2>Temperature Chart</h2>"
     print '<div id="chart_div" style="height: 500px;"></div>'
+    print '<div id="dashboard_div" style="height: 100px;"></div>'
 
 # connect to the db and show some stats
 # argument option is the number of hours
