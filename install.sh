@@ -24,5 +24,5 @@ sudo echo "* * * * * /usr/lib/cgi-bin/monitor.py" >> currentCron
 sudo crontab currentCron && sudo rm currentCron
 #enable GPIO
 sudo echo "dtoverlay=w1-gpio" >> /boot/config.txt
-#restart Apache
-sudo service apache2 restart
+#restart to enable GPIO
+sudo reboot now
