@@ -18,3 +18,4 @@ sudo ln -s ~/rpi_temp_logger/webgui.py /var/www/tmplog/index.py
 
 sudo chown www-data:www-data /usr/lib/cgi-bin/monitor.py
 sudo chown www-data:www-data /var/www/tmplog/tempdb2.db
+sudo service apache2 restart
