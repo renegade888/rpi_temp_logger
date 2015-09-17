@@ -11,6 +11,7 @@ cat ~/rpi_temp_logger/createDatabase.sql | sqlite3 tempdb2.db
 if [ -e /var/www/tmplog/tempdb2.db ]; then
     sudo mv /var/www/tmplog ~/tempdb2.bak
 fi
+sudo cp ~/rpi_temp_logger/tmplog.conf /etc/apache2/sites-enabled
 sudo mv  ~/rpi_temp_logger/tempdb2.db /var/www/tmplog
 sudo ln -s ~/rpi_temp_logger/monitor.py /usr/lib/cgi-bin/
 sudo ln -s ~/rpi_temp_logger/webgui.py /var/www/tmplog/index.py
