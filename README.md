@@ -4,5 +4,5 @@ This repo contains code for a Raspberry Pi temperature logger which uses SQLite 
 #Installation:
 **Warning:** Your Raspberry Pi will reboot after installation to enable GPIO 
 ```bash
-cd && git clone https://github.com/poohzrn/rpi_temp_logger && cd ~/rpi_templogger && ./install.sh 
+cd && git clone https://github.com/poohzrn/rpi_temp_logger && cd ~/rpi_temp_logger && ./install.sh 
 ```
