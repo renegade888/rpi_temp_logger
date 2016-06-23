@@ -2,7 +2,7 @@
 #Sudo access
 sudo -v 
 sudo apt-get update
-sudo apt-get intsall apache2 -y
+sudo apt-get install apache2 -y
 sudo apt-get install sqlite3 -y
 sudo a2enmod mpm_prefork cgi
 sudo mkdir -p /var/www/tmplog
